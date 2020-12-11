@@ -1,6 +1,6 @@
 import socket
 import subprocess
-
+from os import environ as env
 from django.db import models
 
 from cabot.cabotapp.models import StatusCheck, StatusCheckResult
@@ -30,6 +30,8 @@ class StatusGoStatusCheck(StatusCheck):
 
     def _check(self):
         canary_path = env.get('STATUS_GO_CANARY_PATH')
+        if canary_path is None:
+            raise Exception('STATUS_GO_CANARY_PATH env variable not found!')
 
         process = subprocess.Popen([
                 canary_path,

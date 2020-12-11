@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
             name='StatusGoStatusCheck',
             fields=[
                 ('statuscheck_ptr', models.OneToOneField(auto_created=True, on_delete=django.db.models.deletion.CASCADE, parent_link=True, primary_key=True, serialize=False, to='cabotapp.StatusCheck')),
-                ('hostname', models.TextField(help_text=b'Node hostname.', null=True)),
+                ('node_type', models.TextField(help_text=b'Node type.', null=True)),
                 ('enode', models.TextField(help_text=b'Enode address.', null=True)),
             ],
             options={

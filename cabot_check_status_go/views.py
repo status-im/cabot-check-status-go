@@ -16,7 +16,7 @@ class StatusGoStatusCheckForm(StatusCheckForm):
         model = StatusGoStatusCheck
         fields = (
             'name',
-            'hostname',
+            'node_type',
             'enode',
             'timeout',
             'frequency',
@@ -27,9 +27,8 @@ class StatusGoStatusCheckForm(StatusCheckForm):
 
         widgets = dict(**base_widgets)
         widgets.update({
-            'hostname': forms.TextInput(attrs={
-                'style': 'width: 100%',
-                'placeholder': 'node-01.infra.example.org',
+            'node_type': forms.Select(attrs={
+                'data-rel': 'chosen',
             }),
             'enode': forms.TextInput(attrs={
                 'style': 'width: 100%',

@@ -29,8 +29,21 @@ class StatusGoStatusCheck(StatusCheck):
     duplicate_url_name = 'duplicate-status-go-check'
     icon_class = 'glyphicon-random'
 
-    hostname = models.TextField(help_text='Node hostname.')
-    enode = models.TextField(help_text='Enode address.')
+    # First value is the flag used with node-canary
+    NODE_TYPES = (
+        ('mailserver', 'history'),
+        ('staticnode', 'relay'),
+    )
+
+    node_type = models.CharField(
+        max_length=10,
+        choices=NODE_TYPES,
+        default='mailserver',
+        help_text='Node type.'
+    )
+    enode = models.TextField(
+        help_text='Enode address.'
+    )
 
     def _run(self):
         result = StatusCheckResult(status_check=self)
@@ -61,8 +74,8 @@ class StatusGoStatusCheck(StatusCheck):
 
         command = [
             canary_path,
-            '-mailserver={}'.format(self.enode),
-            '-home-dir=/tmp/cabot_check_status_go_{}'.format(self.hostname),
+            '-{}={}'.format(self.node_type, self.enode),
+            '-home-dir=/tmp/cabot_check_status_go_{}'.format(self.name),
             '-log={}'.format(log_level),
             '-log-without-color',
         ]

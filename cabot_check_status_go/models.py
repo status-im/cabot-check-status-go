@@ -1,10 +1,27 @@
 import socket
+import logging
 import subprocess
+from os import path
 from os import environ as env
 from django.db import models
 
 from cabot.cabotapp.models import StatusCheck, StatusCheckResult
 
+RAW_DATA_TEMPLATE = '''
+Command:
+{}
+Return Code:
+{}
+Stdout:
+{}
+Stderr:
+{}
+'''
+
+class StatusGoException(Exception):
+    def __init__(self, message, raw_data):
+        self.message = message
+        self.raw_data = raw_data
 
 class StatusGoStatusCheck(StatusCheck):
     check_name = 'status-go'
@@ -19,27 +36,39 @@ class StatusGoStatusCheck(StatusCheck):
         result = StatusCheckResult(status_check=self)
 
         try:
-            self._check()
+            rval = self._check()
+        except StatusGoException as e:
+            result.raw_data = e.raw_data
+            result.error = u'Error occurred: {}'.format(e.message)
+            result.succeeded = False
         except Exception as e:
-            result.error = u'Error occurred: %s' % (e.message,)
+            result.error = u'Error occurred: {}'.format(e)
             result.succeeded = False
         else:
+            result.raw_data = rval
             result.succeeded = True
 
         return result
 
     def _check(self):
+        log_level = env.get('STATUS_GO_CANARY_LOG_LEVEL', 'WARN')
         canary_path = env.get('STATUS_GO_CANARY_PATH')
         if canary_path is None:
             raise Exception('STATUS_GO_CANARY_PATH env variable not found!')
 
-        process = subprocess.Popen([
-                canary_path,
-                '-mailserver={}'.format(self.enode),
-                '-home-dir=/tmp/cabot_check_status_go_{}'.format(self.hostname),
-                '-log=WARN',
-                '-log-without-color',
-            ],
+        if not path.exists(canary_path):
+            raise Exception('No such file: {}'.format(canary_path))
+
+        command = [
+            canary_path,
+            '-mailserver={}'.format(self.enode),
+            '-home-dir=/tmp/cabot_check_status_go_{}'.format(self.hostname),
+            '-log={}'.format(log_level),
+            '-log-without-color',
+        ]
+
+        process = subprocess.Popen(
+            command,
             stdout=subprocess.PIPE, 
             stderr=subprocess.PIPE
         )
@@ -47,6 +76,11 @@ class StatusGoStatusCheck(StatusCheck):
         process.wait()
         return_code = process.poll()
 
-        if return_code != 0:
-            raise Exception('Failed: {}'.format(stdout))
+        rval = RAW_DATA_TEMPLATE.format(
+            ' \\\n  '.join(command), return_code, stdout, stderr
+        )
 
+        if return_code != 0:
+            raise StatusGoException('Failed: {}'.format(stderr), rval)
+
+        return rval

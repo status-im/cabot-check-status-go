@@ -76,6 +76,7 @@ class StatusGoStatusCheck(StatusCheck):
             canary_path,
             '-{}={}'.format(self.node_type, self.enode),
             '-home-dir=/tmp/cabot_check_status_go_{}'.format(self.name),
+            '-timeout={}'.format(self.timeout-1),
             '-log={}'.format(log_level),
             '-log-without-color',
         ]

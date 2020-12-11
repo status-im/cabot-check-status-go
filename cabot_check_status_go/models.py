@@ -10,7 +10,7 @@ class StatusGoStatusCheck(StatusCheck):
     check_name = 'status-go'
     edit_url_name = 'update-status-go-check'
     duplicate_url_name = 'duplicate-status-go-check'
-    icon_class = 'glyphicon-transfer'
+    icon_class = 'glyphicon-random'
 
     hostname = models.TextField(help_text='Node hostname.')
     enode = models.TextField(help_text='Enode address.')

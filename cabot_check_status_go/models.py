@@ -1,5 +1,4 @@
 import socket
-import logging
 import subprocess
 from os import path
 from os import environ as env

@@ -19,3 +19,11 @@ This plugin requries one environment variable:
 ```sh
 STATUS_GO_CANARY_PATH=<path_to_status_go_canary_binary>
 ```
+
+# API
+
+The plugin exposes the standard check API under:
+```
+/plugins/cabot_check_status_go/api/status_go_checks/
+```
+Which accepts the standard `GET`/`POST`/`OPTIONS` methods.

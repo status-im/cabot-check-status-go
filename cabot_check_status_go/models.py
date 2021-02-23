@@ -1,10 +1,12 @@
-import socket
 import subprocess
 from os import path
 from os import environ as env
 from django.db import models
+from celery.utils.log import get_task_logger
 
 from cabot.cabotapp.models import StatusCheck, StatusCheckResult
+
+log = get_task_logger(__name__)
 
 RAW_DATA_TEMPLATE = '''
 Command:
@@ -80,6 +82,8 @@ class StatusGoStatusCheck(StatusCheck):
             '-log-without-color',
         ]
 
+        log.info('Checking: %s', self.name)
+
         process = subprocess.Popen(
             command,
             stdout=subprocess.PIPE, 
@@ -92,6 +96,9 @@ class StatusGoStatusCheck(StatusCheck):
         rval = RAW_DATA_TEMPLATE.format(
             ' \\\n  '.join(command), return_code, stdout, stderr
         )
+
+        log.debug('stdout: %s', stdout)
+        log.debug('stderr: %s', stderr)
 
         if return_code != 0:
             raise StatusGoException('Failed: {}'.format(stderr), rval)
